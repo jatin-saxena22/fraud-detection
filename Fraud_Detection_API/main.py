@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from typing import Literal
+from typing import Literal, Optional
 import joblib
 import numpy as np
 import pandas as pd
@@ -11,13 +11,13 @@ app = FastAPI(
 ## Two ways to test:
 
 ### 1️⃣ /predict/simple — For normal users
-Just fill in basic details — amount, time, location etc.
-⚠️ Note: This gives an approximate result based on rules.
+Fill basic transaction details — get instant fraud prediction.
+⚠️ Note: Rule-based approximate result.
 
-### 2️⃣ /predict/technical — For accurate results
-Provide V1-V28 values — 100% accurate ML model result.
+### 2️⃣ /predict/technical — For accurate ML results
+Provide V1-V28 PCA features — 100% ML model result.
 """,
-    version="2.0.0"
+    version="3.0.0"
 )
 
 model = joblib.load("fraud_model_tuned.pkl")
@@ -26,27 +26,33 @@ time_scaler = joblib.load("time_scaler.pkl")
 feature_names = joblib.load("feature_names.pkl")
 
 
-# ── Schema 1: Simple (normal user) ──
+# ── Schema 1: Simple ──
 class SimpleTransaction(BaseModel):
     amount: float = Field(..., example=1500.00,
         description="Transaction amount in rupees")
     transaction_hour: int = Field(..., example=14,
-        description="Hour of transaction (0=midnight, 6=morning, 12=noon, 18=evening, 23=night)")
+        description="Hour of transaction (0-23)")
     merchant_category: Literal["grocery","restaurant","online","atm","travel","other"] = Field(
         ..., example="online",
-        description="Where did the transaction happen?")
+        description="Where did transaction happen?")
     transaction_type: Literal["purchase","withdrawal","transfer"] = Field(
         ..., example="purchase",
         description="Type of transaction")
     location_match: bool = Field(..., example=True,
-        description="Did the transaction happen at your registered location? (true/false)")
+        description="Did transaction happen at registered location?")
     is_foreign_transaction: bool = Field(..., example=False,
-        description="Was this transaction from a foreign country? (true/false)")
+        description="Was this from a foreign country?")
     previous_fraud_count: int = Field(..., example=0,
-        description="How many times has fraud occurred on this card before? (0 means never)")
+        description="How many times fraud occurred before?")
+    avg_monthly_spend: float = Field(..., example=5000.00,
+        description="Your average monthly spending in rupees")
+    card_age_days: int = Field(..., example=365,
+        description="How many days old is your card?")
+    is_round_amount: Optional[bool] = Field(None, example=False,
+        description="Is amount a round figure? Leave empty to auto-detect")
 
 
-# ── Schema 2: Technical (accurate) ──
+# ── Schema 2: Technical ──
 class TechnicalTransaction(BaseModel):
     Time: float = Field(..., example=0.0)
     V1: float = Field(..., example=-1.35)
@@ -85,6 +91,7 @@ class TechnicalTransaction(BaseModel):
 def home():
     return {
         "message": "💳 Fraud Detection API is running!",
+        "version": "3.0.0",
         "endpoints": {
             "simple": "/predict/simple — For normal users",
             "technical": "/predict/technical — For accurate ML results"
@@ -96,34 +103,116 @@ def home():
 @app.post("/predict/simple", tags=["Normal User"])
 def predict_simple(data: SimpleTransaction):
 
+    # Basic validations
     if data.amount <= 0:
         raise HTTPException(status_code=400,
             detail="❌ Amount must be greater than 0!")
     if data.amount > 50000:
         raise HTTPException(status_code=400,
-            detail="❌ Amount cannot exceed 50,000!")
+            detail="❌ Amount cannot exceed ₹50,000!")
+    if data.transaction_hour < 0 or data.transaction_hour > 23:
+        raise HTTPException(status_code=400,
+            detail="❌ Transaction hour must be between 0-23!")
+    if data.card_age_days < 0:
+        raise HTTPException(status_code=400,
+            detail="❌ Card age cannot be negative!")
+    if data.avg_monthly_spend <= 0:
+        raise HTTPException(status_code=400,
+            detail="❌ Average monthly spend must be greater than 0!")
 
-    # Rule based risk score
+    # ── Risk Score Calculation ──
     risk_score = 0
+    risk_reasons = []
 
+    # 1. Location risk
     if not data.location_match:
-        risk_score += 35
+        risk_score += 30
+        risk_reasons.append("⚠️ Transaction location mismatch")
+
+    # 2. Foreign transaction risk
     if data.is_foreign_transaction:
-        risk_score += 25
-    if data.transaction_hour >= 22 or data.transaction_hour <= 5:
         risk_score += 20
+        risk_reasons.append("⚠️ Foreign transaction detected")
+
+    # 3. Unusual hour risk
+    if data.transaction_hour >= 23 or data.transaction_hour <= 4:
+        risk_score += 20
+        risk_reasons.append("⚠️ Transaction at unusual hour (late night)")
+
+    # 4. Merchant risk
     if data.merchant_category == "atm":
         risk_score += 10
+        risk_reasons.append("⚠️ ATM withdrawal")
+    elif data.merchant_category == "online":
+        risk_score += 5
+
+    # 5. Transaction type risk
     if data.transaction_type == "withdrawal":
         risk_score += 10
+        risk_reasons.append("⚠️ Cash withdrawal")
+
+    # 6. Previous fraud history
     if data.previous_fraud_count >= 1:
         risk_score += data.previous_fraud_count * 15
-    if data.amount > 20000:
-        risk_score += 15
-    if data.amount > 40000:
-        risk_score += 10
+        risk_reasons.append(f"⚠️ {data.previous_fraud_count} previous fraud(s) on this card")
 
-    # Risk level
+    # 7. HIGH AMOUNT risk
+    if data.amount > 30000:
+        risk_score += 15
+        risk_reasons.append("⚠️ High value transaction")
+    elif data.amount > 10000:
+        risk_score += 5
+
+    # ── NEW FEATURE 1: Amount Spike Detection ──
+    if data.avg_monthly_spend > 0:
+        spend_ratio = data.amount / (data.avg_monthly_spend / 30)
+        if spend_ratio > 10:
+            risk_score += 25
+            risk_reasons.append(
+                f"🚨 Amount is {round(spend_ratio)}x higher than your daily average!")
+        elif spend_ratio > 5:
+            risk_score += 15
+            risk_reasons.append(
+                f"⚠️ Amount is {round(spend_ratio)}x higher than your daily average")
+
+    # ── NEW FEATURE 2: Round Amount Detection ──
+    round_amount = data.is_round_amount
+    if round_amount is None:
+        round_amount = data.amount % 1000 == 0 and data.amount >= 5000
+    if round_amount:
+        risk_score += 10
+        risk_reasons.append("⚠️ Suspiciously round amount detected")
+
+    # ── NEW FEATURE 3: New Card Detection ──
+    if data.card_age_days <= 30:
+        risk_score += 20
+        risk_reasons.append("🚨 Very new card (less than 1 month old)")
+    elif data.card_age_days <= 90:
+        risk_score += 10
+        risk_reasons.append("⚠️ Relatively new card (less than 3 months old)")
+
+    # ── NEW FEATURE 4: Unusual Hour + Foreign Combo ──
+    if data.is_foreign_transaction and (
+        data.transaction_hour >= 23 or data.transaction_hour <= 4):
+        risk_score += 20
+        risk_reasons.append("🚨 Foreign transaction at unusual hour — High Alert!")
+
+    # ── NEW FEATURE 5: Multiple Risk Factors Combo ──
+    high_risk_factors = sum([
+        not data.location_match,
+        data.is_foreign_transaction,
+        data.transaction_hour >= 23 or data.transaction_hour <= 4,
+        data.previous_fraud_count >= 1,
+        data.amount > 20000
+    ])
+    if high_risk_factors >= 4:
+        risk_score += 25
+        risk_reasons.append("🚨 Multiple high-risk factors detected simultaneously!")
+    elif high_risk_factors >= 3:
+        risk_score += 10
+        risk_reasons.append("⚠️ Several risk factors present together")
+
+    # ── Risk Level ──
     if risk_score >= 60:
         risk_level = "🔴 High Risk"
         fraud_detected = True
@@ -148,6 +237,7 @@ def predict_simple(data: SimpleTransaction):
             "risk_score": f"{min(risk_score, 100)}/100",
             "advice": advice
         },
+        "risk_reasons": risk_reasons if risk_reasons else ["✅ No suspicious activity detected"],
         "transaction_summary": {
             "amount": f"₹{data.amount}",
             "time": f"{data.transaction_hour}:00",
@@ -155,13 +245,15 @@ def predict_simple(data: SimpleTransaction):
             "type": data.transaction_type,
             "foreign_transaction": "Yes ⚠️" if data.is_foreign_transaction else "No",
             "location_safe": "Yes" if data.location_match else "No ⚠️",
-            "fraud_history": f"Fraud occurred {data.previous_fraud_count} time(s) before"
+            "card_age": f"{data.card_age_days} days",
+            "avg_daily_spend": f"₹{round(data.avg_monthly_spend/30, 2)}",
+            "fraud_history": f"{data.previous_fraud_count} time(s)"
         },
-        "note": "⚠️ This is an approximate result. Use /predict/technical for accurate ML model results."
+        "note": "⚠️ Approximate result. Use /predict/technical for accurate ML model result."
     }
 
 
-# ── Endpoint 2: Technical (ML Model) ──
+# ── Endpoint 2: Technical ──
 @app.post("/predict/technical", tags=["Technical User"])
 def predict_technical(data: TechnicalTransaction):
 
@@ -170,10 +262,9 @@ def predict_technical(data: TechnicalTransaction):
             detail="❌ Amount must be greater than 0!")
     if data.Amount > 50000:
         raise HTTPException(status_code=400,
-            detail="❌ Amount cannot exceed 50,000!")
+            detail="❌ Amount cannot exceed ₹50,000!")
 
     input_dict = data.dict()
-
     input_dict["Amount"] = amount_scaler.transform(
         [[input_dict["Amount"]]])[0][0]
     input_dict["Time"] = time_scaler.transform(
@@ -203,5 +294,5 @@ def predict_technical(data: TechnicalTransaction):
             "fraud_probability": f"{round(float(probability) * 100, 2)}%",
             "advice": advice
         },
-        "note": "✅ This is an accurate result from the ML model."
+        "note": "✅ Accurate result from ML model."
     }
