@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import joblib
 import numpy as np
 import pandas as pd
@@ -98,6 +100,9 @@ def home():
         }
     }
 
+@app.get("/app", tags=["Frontend"])
+def frontend():
+    return FileResponse("index.html")
 
 # ── Endpoint 1: Simple ──
 @app.post("/predict/simple", tags=["Normal User"])
