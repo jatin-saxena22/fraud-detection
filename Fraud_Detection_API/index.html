@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>💳 Fraud Detection System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --border: #2a2a38;
+    --accent: #6c63ff;
+    --accent2: #a78bfa;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Animated Background ── */
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(108,99,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108,99,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-glow {
+    position: fixed;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(108,99,255,0.08) 0%, transparent 70%);
+    top: -200px; left: -200px;
+    pointer-events: none;
+    z-index: 0;
+    animation: glowMove 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes glowMove {
+    to { transform: translate(200px, 200px); }
+  }
+
+  /* ── Header ── */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 24px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(10,10,15,0.8);
+    backdrop-filter: blur(20px);
+  }
+
+  .logo {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  header span {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .status-pill {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--green);
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── Main Layout ── */
+  main {
+    position: relative;
+    z-index: 10;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  /* ── Hero Section ── */
+  .hero {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 0 20px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(108,99,255,0.1);
+    border: 1px solid rgba(108,99,255,0.2);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--accent2);
+    margin-bottom: 20px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .hero h2 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: rgba(108,99,255,0.3); }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::before {
+    content: '';
+    width: 3px; height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* ── Form ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  input, select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    width: 100%;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(108,99,255,0.1);
+  }
+
+  select option { background: var(--bg3); }
+
+  /* Toggle */
+  .toggle-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg3);
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .toggle-btn.active-yes {
+    background: rgba(16,185,129,0.1);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .toggle-btn.active-no {
+    background: rgba(239,68,68,0.1);
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* ── Submit Button ── */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 20px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: opacity 0.2s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .submit-btn:hover { opacity: 0.9; }
+  .submit-btn:active { transform: scale(0.99); }
+
+  .submit-btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  /* ── Result Panel ── */
+  .result-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .result-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: var(--text3);
+    min-height: 300px;
+  }
+
+  .result-placeholder .icon {
+    font-size: 48px;
+    opacity: 0.4;
+  }
+
+  .result-placeholder p {
+    font-size: 14px;
+    text-align: center;
+  }
+
+  /* Result Verdict */
+  .verdict {
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .verdict.safe {
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+
+  .verdict.fraud {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+  }
+
+  .verdict.medium {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+  }
+
+  .verdict-icon { font-size: 40px; margin-bottom: 10px; }
+
+  .verdict-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .verdict.safe .verdict-title { color: var(--green); }
+  .verdict.fraud .verdict-title { color: var(--red); }
+  .verdict.medium .verdict-title { color: var(--yellow); }
+
+  .verdict-msg {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  /* Risk Score */
+  .risk-score-wrap {
+    display: none;
+    animation: fadeIn 0.4s ease 0.1s both;
+  }
+
+  .risk-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+
+  .risk-bar-bg {
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .risk-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+    width: 0%;
+  }
+
+  /* Risk Reasons */
+  .reasons-wrap {
+    display: none;
+    animation: fadeIn 0.4s ease 0.2s both;
+  }
+
+  .reason-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+
+  .reason-item:last-child { border-bottom: none; }
+
+  /* Summary Stats */
+  .summary-wrap {
+    display: none;
+    animation: fadeIn 0.4s ease 0.3s both;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .summary-item {
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .summary-item .s-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .summary-item .s-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── Stats Row ── */
+  .stats-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  /* ── Loading Spinner ── */
+  .spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Footer ── */
+  footer {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 30px;
+    border-top: 1px solid var(--border);
+    color: var(--text3);
+    font-size: 12px;
+  }
+
+  footer a { color: var(--accent2); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    main { grid-template-columns: 1fr; padding: 20px 16px; }
+    .hero h2 { font-size: 28px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr; }
+    header { padding: 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<!-- Header -->
+<header>
+  <div class="logo">💳</div>
+  <div>
+    <h1>FraudShield</h1>
+    <span>ML-Powered Detection System</span>
+  </div>
+  <div class="status-pill">
+    <div class="status-dot"></div>
+    API Live
+  </div>
+</header>
+
+<!-- Main -->
+<main>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">⚡ Real-time Detection · Random Forest Model</div>
+    <h2>Detect Fraud<br/>Before It Happens</h2>
+    <p>Enter your transaction details below. Our ML model analyzes 10+ risk factors and returns an instant fraud verdict.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num">10+</div>
+      <div class="stat-label">Risk Factors Analyzed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">2</div>
+      <div class="stat-label">Detection Endpoints</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">&lt;1s</div>
+      <div class="stat-label">Response Time</div>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="card">
+    <div class="card-title">Transaction Details</div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Amount (₹)</label>
+        <input type="number" id="amount" placeholder="e.g. 1500" min="1" max="50000"/>
+      </div>
+
+      <div class="form-group">
+        <label>Transaction Hour (0–23)</label>
+        <input type="number" id="transaction_hour" placeholder="e.g. 14" min="0" max="23"/>
+      </div>
+
+      <div class="form-group">
+        <label>Merchant Category</label>
+        <select id="merchant_category">
+          <option value="">Select category</option>
+          <option value="grocery">🛒 Grocery</option>
+          <option value="restaurant">🍽️ Restaurant</option>
+          <option value="online">💻 Online</option>
+          <option value="atm">🏧 ATM</option>
+          <option value="travel">✈️ Travel</option>
+          <option value="other">📦 Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Transaction Type</label>
+        <select id="transaction_type">
+          <option value="">Select type</option>
+          <option value="purchase">💳 Purchase</option>
+          <option value="withdrawal">💵 Withdrawal</option>
+          <option value="transfer">🔄 Transfer</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Avg Monthly Spend (₹)</label>
+        <input type="number" id="avg_monthly_spend" placeholder="e.g. 10000"/>
+      </div>
+
+      <div class="form-group">
+        <label>Card Age (days)</label>
+        <input type="number" id="card_age_days" placeholder="e.g. 365"/>
+      </div>
+
+      <div class="form-group full">
+        <label>Location Match?</label>
+        <div class="toggle-group">
+          <button class="toggle-btn" id="loc-yes" onclick="setToggle('location','yes')">✅ Yes — My location</button>
+          <button class="toggle-btn" id="loc-no"  onclick="setToggle('location','no')">❌ No — Different location</button>
+        </div>
+      </div>
+
+      <div class="form-group full">
+        <label>Foreign Transaction?</label>
+        <div class="toggle-group">
+          <button class="toggle-btn" id="for-yes" onclick="setToggle('foreign','yes')">🌍 Yes — Foreign country</button>
+          <button class="toggle-btn" id="for-no"  onclick="setToggle('foreign','no')">🇮🇳 No — India only</button>
+        </div>
+      </div>
+
+      <div class="form-group full">
+        <label>Previous Fraud Count</label>
+        <input type="number" id="previous_fraud_count" placeholder="0 = never happened" min="0"/>
+      </div>
+
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="checkFraud()">
+      🔍 Analyze Transaction
+    </button>
+  </div>
+
+  <!-- Result Card -->
+  <div class="card result-panel">
+    <div class="card-title">Detection Result</div>
+
+    <!-- Placeholder -->
+    <div class="result-placeholder" id="placeholder">
+      <div class="icon">🛡️</div>
+      <p>Fill in transaction details<br/>and click Analyze</p>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict" id="verdict">
+      <div class="verdict-icon" id="verdict-icon"></div>
+      <div class="verdict-title" id="verdict-title"></div>
+      <div class="verdict-msg" id="verdict-msg"></div>
+    </div>
+
+    <!-- Risk Score Bar -->
+    <div class="risk-score-wrap card" style="padding:16px;" id="risk-score-wrap">
+      <div class="risk-label">
+        <span>Risk Score</span>
+        <span id="risk-score-text">0/100</span>
+      </div>
+      <div class="risk-bar-bg">
+        <div class="risk-bar-fill" id="risk-bar"></div>
+      </div>
+    </div>
+
+    <!-- Risk Reasons -->
+    <div class="reasons-wrap card" style="padding:16px;" id="reasons-wrap">
+      <div class="card-title" style="margin-bottom:12px;">Why this result?</div>
+      <div id="reasons-list"></div>
+    </div>
+
+    <!-- Transaction Summary -->
+    <div class="summary-wrap card" style="padding:16px;" id="summary-wrap">
+      <div class="card-title" style="margin-bottom:12px;">Transaction Summary</div>
+      <div class="summary-grid" id="summary-grid"></div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  Built by <a href="https://github.com/iamjatinsaxenaa" target="_blank">Jatin Saxena</a> &nbsp;·&nbsp;
+  <a href="https://fraud-detection-vztr.onrender.com/docs" target="_blank">API Docs</a> &nbsp;·&nbsp;
+  <a href="https://github.com/iamjatinsaxenaa/fraud-detection" target="_blank">GitHub</a>
+</footer>
+
+<script>
+  const API = 'https://fraud-detection-vztr.onrender.com';
+  const state = { location: null, foreign: null };
+
+  function setToggle(type, val) {
+    state[type] = val;
+    if (type === 'location') {
+      document.getElementById('loc-yes').className = 'toggle-btn' + (val==='yes' ? ' active-yes' : '');
+      document.getElementById('loc-no').className  = 'toggle-btn' + (val==='no'  ? ' active-no'  : '');
+    } else {
+      document.getElementById('for-yes').className = 'toggle-btn' + (val==='yes' ? ' active-no'  : '');
+      document.getElementById('for-no').className  = 'toggle-btn' + (val==='no'  ? ' active-yes' : '');
+    }
+  }
+
+  async function checkFraud() {
+    // Gather values
+    const amount             = parseFloat(document.getElementById('amount').value);
+    const transaction_hour   = parseInt(document.getElementById('transaction_hour').value);
+    const merchant_category  = document.getElementById('merchant_category').value;
+    const transaction_type   = document.getElementById('transaction_type').value;
+    const avg_monthly_spend  = parseFloat(document.getElementById('avg_monthly_spend').value);
+    const card_age_days      = parseInt(document.getElementById('card_age_days').value);
+    const previous_fraud_count = parseInt(document.getElementById('previous_fraud_count').value) || 0;
+
+    // Validate
+    if (!amount || !merchant_category || !transaction_type ||
+        isNaN(transaction_hour) || !avg_monthly_spend || !card_age_days ||
+        state.location === null || state.foreign === null) {
+      alert('⚠️ Please fill in all fields!');
+      return;
+    }
+
+    // Loading state
+    const btn = document.getElementById('submit-btn');
+    btn.classList.add('loading');
+    btn.innerHTML = '<span class="spinner"></span>Analyzing...';
+    document.getElementById('placeholder').style.display = 'flex';
+    document.getElementById('verdict').style.display = 'none';
+    document.getElementById('risk-score-wrap').style.display = 'none';
+    document.getElementById('reasons-wrap').style.display = 'none';
+    document.getElementById('summary-wrap').style.display = 'none';
+
+    try {
+      const body = {
+        amount, transaction_hour, merchant_category, transaction_type,
+        location_match: state.location === 'yes',
+        is_foreign_transaction: state.foreign === 'yes',
+        previous_fraud_count, avg_monthly_spend, card_age_days
+      };
+
+      const res  = await fetch(`${API}/predict/simple`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert('❌ ' + (data.detail || 'API Error'));
+        return;
+      }
+
+      showResult(data);
+
+    } catch(e) {
+      alert('❌ Could not connect to API. Please try again.');
+    } finally {
+      btn.classList.remove('loading');
+      btn.innerHTML = '🔍 Analyze Transaction';
+    }
+  }
+
+  function showResult(data) {
+    const r = data.result;
+    const score = parseInt(r.risk_score);
+
+    // Hide placeholder
+    document.getElementById('placeholder').style.display = 'none';
+
+    // Verdict
+    const verdict = document.getElementById('verdict');
+    const isHigh   = r.risk_level.includes('High');
+    const isMedium = r.risk_level.includes('Medium');
+
+    verdict.className = 'verdict ' + (isHigh ? 'fraud' : isMedium ? 'medium' : 'safe');
+    document.getElementById('verdict-icon').textContent = isHigh ? '🚨' : isMedium ? '⚠️' : '✅';
+    document.getElementById('verdict-title').textContent = r.message;
+    document.getElementById('verdict-msg').textContent = r.advice;
+    verdict.style.display = 'block';
+
+    // Risk Score Bar
+    const wrap = document.getElementById('risk-score-wrap');
+    wrap.style.display = 'block';
+    document.getElementById('risk-score-text').textContent = r.risk_score;
+    const bar = document.getElementById('risk-bar');
+    const pct = Math.min(score, 100);
+    bar.style.width = '0%';
+    bar.style.background = isHigh ? '#ef4444' : isMedium ? '#f59e0b' : '#10b981';
+    setTimeout(() => { bar.style.width = pct + '%'; }, 100);
+
+    // Risk Reasons
+    const reasons = data.risk_reasons || [];
+    if (reasons.length) {
+      const rWrap = document.getElementById('reasons-wrap');
+      rWrap.style.display = 'block';
+      document.getElementById('reasons-list').innerHTML = reasons.map(r =>
+        `<div class="reason-item">${r}</div>`
+      ).join('');
+    }
+
+    // Summary
+    const s = data.transaction_summary;
+    const sWrap = document.getElementById('summary-wrap');
+    sWrap.style.display = 'block';
+    const items = [
+      ['Amount', s.amount],
+      ['Time', s.time],
+      ['Merchant', s.merchant],
+      ['Type', s.type],
+      ['Foreign', s.foreign_transaction],
+      ['Location', s.location_safe],
+      ['Card Age', s.card_age],
+      ['Fraud History', s.fraud_history],
+    ];
+    document.getElementById('summary-grid').innerHTML = items.map(([l,v]) =>
+      `<div class="summary-item"><div class="s-label">${l}</div><div class="s-value">${v}</div></div>`
+    ).join('');
+  }
+</script>
+</body>
+</html>
