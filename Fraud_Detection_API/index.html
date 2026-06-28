@@ -4,6 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>💳 Fraud Detection System</title>
+
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
@@ -510,6 +512,42 @@
   footer a { color: var(--accent2); text-decoration: none; }
   footer a:hover { text-decoration: underline; }
 
+  .footer-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 10px;
+}
+.footer-badge {
+  display: inline-block;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  color: #10b981;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.footer-links a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text2);
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: white; }
+.footer-links img {
+  width: 16px;
+  filter: invert(0.7);
+}
+
   /* ── Responsive ── */
   @media (max-width: 768px) {
     main { grid-template-columns: 1fr; padding: 20px 16px; }
@@ -518,6 +556,7 @@
     .stats-row { grid-template-columns: 1fr; }
     header { padding: 16px 20px; }
   }
+  
 </style>
 </head>
 <body>
@@ -688,7 +727,7 @@
 <footer>
   <div class="footer-name">Jatin Saxena</div>
   
-  <div class="footer-badge">⚡ Open to Work & Collaborations</div>
+  <div class="footer-badge">⚡ Open to Work</div>
   
   <div class="footer-links">
     <a href="https://github.com/jatin-saxena22" target="_blank">
@@ -850,20 +889,3 @@
 </html>
 
 
-st.markdown("""
-<hr style='border: 1px solid #333;'>
-<div style='text-align: center; padding: 15px; color: gray;'>
-    <p>
-    <a href='https://github.com/jatin-saxena22' target='_blank'>
-        <img src='https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg' 
-             width='20' style='filter: invert(1); margin: 0 5px;'>
-    </a>
-    <a href='https://linkedin.com/in/jatinsaxena262' target='_blank'>
-        <img src='https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linkedin.svg' 
-             width='20' style='filter: invert(1); margin: 0 5px;'>
-    </a>
-    </p>
-    <p style='font-size: 12px;'>Built with Python & ❤️ in India 🇮🇳</p>
-    <p style='font-size: 11px;'>© 2025 Jatin Saxena | All Rights Reserved</p>
-</div>
-""", unsafe_allow_html=True)
