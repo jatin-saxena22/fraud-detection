@@ -238,4 +238,4 @@ planned improvements to make the system more robust and production-ready:
 **Jatin Saxena**  
 [GitHub](https://github.com/jatin-saxena22) · 
 [LinkedIn](https://linkedin.com/in/jatinsaxena262) · 
-[Email](mailto:jatinsaxena262@gmail.com)
+[Email](https://mail.google.com/mail/?view=cm&to=jatinsaxena262@gmail.com)
