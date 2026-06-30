@@ -54,7 +54,6 @@ transactions in real-time, achieving **85% Recall** and **0.9811 ROC-AUC Score**
 ---
 
 ## 📁 Project Structure
-
 fraud-detection/
 ├── Fraud_Detection_API/
 │   ├── main.py                  # FastAPI application
@@ -72,8 +71,6 @@ fraud-detection/
 ├── Fraud_Detection.ipynb     # Model training notebook
 └── README.md
 
-
----
 
 ## 🚀 API Endpoints
 
