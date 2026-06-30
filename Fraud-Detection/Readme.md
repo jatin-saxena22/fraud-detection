@@ -11,7 +11,7 @@ A Machine Learning-powered REST API that detects fraudulent credit card transact
 
 ---
 
- 🌐 https://fraud-detection-vztr.onrender.com/docs
+ 🌐 https://fraud-detection-vztr.onrender.com/app
 
 ---
 
