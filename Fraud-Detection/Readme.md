@@ -1,17 +1,9 @@
-# 🔴 Credit Card Fraud Detection System
+# 💳 Credit Card Fraud Detection System
 
-A machine learning system that detects fraudulent credit card transactions 
-with **85% Recall** and **0.9811 ROC-AUC Score**.
+A Machine Learning-powered REST API that detects fraudulent credit card 
+transactions in real-time, achieving **85% Recall** and **0.9811 ROC-AUC Score**.
 
----
-
-# 💳 Fraud Detection API
-
-A Machine Learning-powered REST API that detects fraudulent credit card transactions in real-time.
-
----
-
- 🌐 https://fraud-detection-vztr.onrender.com/app
+🌐 **Live Demo:** https://fraud-detection-vztr.onrender.com/app
 
 ---
 
@@ -41,6 +33,16 @@ A Machine Learning-powered REST API that detects fraudulent credit card transact
 
 ---
 
+## 📊 Model Performance
+
+| Metric | Score |
+|--------|-------|
+| ROC-AUC | 0.9811 |
+| Recall (Fraud) | 85% |
+| Precision (Fraud) | 65% |
+| Best Model | Random Forest (Tuned) |
+
+---
 
 ## 💰 Business Impact
 
@@ -50,43 +52,33 @@ A Machine Learning-powered REST API that detects fraudulent credit card transact
 - 📈 **83.7% effectiveness** on test data
 
 ---
+
 ## 📁 Project Structure
+
 fraud-detection/
-
 ├── Fraud_Detection_API/
-
-│   ├── main.py              # FastAPI application
-
-│   ├── Schemas.py           # Input data schemas
-
-│   ├── requirements.txt     # Dependencies
-
-│   ├── render.yaml          # Render deployment config
-
-│   ├── fraud_model.pkl      # Base ML model
-
-│   ├── fraud_model_tuned.pkl# Tuned ML model
-
-│   ├── amount_scaler.pkl    # Amount scaler
-
-│   ├── time_scaler.pkl      # Time scaler
-
-│   └── feature_names.pkl    # Feature names
+│   ├── main.py                  # FastAPI application
+│   ├── Schemas.py                # Input data schemas
+│   ├── requirements.txt          # Dependencies
+│   ├── render.yaml               # Render deployment config
+│   ├── fraud_model.pkl           # Base ML model
+│   ├── fraud_model_tuned.pkl     # Tuned ML model
+│   ├── amount_scaler.pkl         # Amount scaler
+│   ├── time_scaler.pkl           # Time scaler
+│   └── feature_names.pkl         # Feature names
 │
-
 └── Fraud-Detection/
-
-├── models/              # Saved model files
-
-├── Fraud Detection.ipynb# Model training notebook
-
+├── models/                   # Saved model files
+├── Fraud_Detection.ipynb     # Model training notebook
 └── README.md
+
 
 ---
 
 ## 🚀 API Endpoints
 
 ### 1️⃣ `/predict/simple` — For Normal Users
+
 Send basic transaction details and get fraud prediction.
 
 **Request:**
@@ -127,6 +119,7 @@ Send basic transaction details and get fraud prediction.
 ---
 
 ### 2️⃣ `/predict/technical` — For ML/Technical Users
+
 Send raw PCA features (V1-V28) for accurate ML model prediction.
 
 **Request:**
@@ -162,9 +155,7 @@ Send raw PCA features (V1-V28) for accurate ML model prediction.
 
 ---
 
-## 📊 Input Parameters Guide
-
-### `/predict/simple` Parameters
+## 📊 Input Parameters Guide — `/predict/simple`
 
 | Parameter | Type | Values | Description |
 |-----------|------|--------|-------------|
@@ -188,15 +179,15 @@ Send raw PCA features (V1-V28) for accurate ML model prediction.
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/iamjatinsaxenaa/fraud-detection.git
+git clone https://github.com/jatin-saxena22/fraud-detection.git
 cd fraud-detection/Fraud_Detection_API
 ```
 
 **2. Create virtual environment**
 ```bash
 python -m venv venv
-venv\Scripts\activate   # Windows
-source venv/bin/activate # Mac/Linux
+venv\Scripts\activate      # Windows
+source venv/bin/activate   # Mac/Linux
 ```
 
 **3. Install dependencies**
@@ -210,3 +201,43 @@ uvicorn main:app --reload
 ```
 
 **5. Open in browser**
+
+---
+
+## 🚀 Future Improvements
+
+This project has strong potential for further enhancement. Below are 
+planned improvements to make the system more robust and production-ready:
+
+### Model Enhancements
+- **Advanced Algorithms**: Explore LightGBM and CatBoost for faster 
+  training and improved handling of categorical features
+- **Anomaly Detection**: Integrate Isolation Forest as a complementary 
+  unsupervised approach to catch novel fraud patterns
+- **Deep Learning**: Experiment with Autoencoder-based anomaly detection 
+  for identifying complex, non-linear fraud patterns
+- **Ensemble Stacking**: Combine Random Forest and XGBoost predictions 
+  using a meta-learner for improved accuracy
+
+### Production Readiness
+- **Real-time Streaming**: Integrate Apache Kafka for live transaction 
+  stream processing instead of batch predictions
+- **Model Monitoring**: Implement drift detection to track model 
+  performance degradation over time
+- **A/B Testing**: Set up systematic threshold optimization through 
+  controlled experiments in production
+
+### Scaling
+- **Full-scale Tuning**: Run exhaustive hyperparameter optimization on 
+  the complete dataset using cloud computing resources (AWS/GCP)
+- **CI/CD Pipeline**: Automate testing and deployment using 
+  GitHub Actions
+
+---
+
+## 👤 Author
+
+**Jatin Saxena**  
+[GitHub](https://github.com/jatin-saxena22) · 
+[LinkedIn](https://linkedin.com/in/jatinsaxena262) · 
+[Email](mailto:jatinsaxena262@gmail.com)
